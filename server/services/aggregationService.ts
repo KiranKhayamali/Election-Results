@@ -1,36 +1,122 @@
 import { Server as SocketIOServer } from 'socket.io';
-import cron from 'node-cron';
 import { scrapeOfficialSource } from './scrapers/officialScraper';
 import { scrapeEkantipurSource } from './scrapers/ekantipurScraper';
 import { scrapeOnlineKhabarSource } from './scrapers/onlinekhabarScraper';
 import { AggregationResult } from '../types';
 
+const DEFAULT_PRIMARY_INTERVAL_MS = 5 * 60 * 1000;
+const DEFAULT_SECONDARY_INTERVAL_MS = 1 * 60 * 1000;
+
+const getIntervalMs = (value: string | undefined, fallbackMs: number): number => {
+  const parsed = Number((value || '').trim());
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallbackMs;
+};
+
 export const startDataAggregation = (socketIO: SocketIOServer): void => {
   console.log('Starting data aggregation service...');
   
-  // Initial fetch
+  // Initial fetch from all configured sources.
   void fetchAllSources(socketIO);
 
-  // Support both milliseconds (e.g. 300000) and cron expression values.
-  const pollingIntervalRaw = (process.env.POLLING_INTERVAL || '').trim();
-  const pollingIntervalMs = Number(pollingIntervalRaw);
+  const primaryIntervalMs = getIntervalMs(process.env.PRIMARY_POLLING_INTERVAL_MS, DEFAULT_PRIMARY_INTERVAL_MS);
+  const secondaryIntervalMs = getIntervalMs(process.env.SECONDARY_POLLING_INTERVAL_MS, DEFAULT_SECONDARY_INTERVAL_MS);
 
-  if (pollingIntervalRaw && Number.isFinite(pollingIntervalMs) && pollingIntervalMs > 0) {
-    setInterval(() => {
-      console.log('Scheduled update triggered');
-      void fetchAllSources(socketIO);
-    }, pollingIntervalMs);
-    console.log(`Data aggregation scheduled every ${pollingIntervalMs} ms`);
-  } else {
-    const cronExpression = pollingIntervalRaw || '*/5 * * * *';
-    cron.schedule(cronExpression, () => {
-      console.log('Scheduled update triggered');
-      void fetchAllSources(socketIO);
-    });
-    console.log(`Data aggregation scheduled with cron: ${cronExpression}`);
-  }
+  setInterval(() => {
+    console.log('Scheduled primary update triggered');
+    void fetchPrimarySources(socketIO);
+  }, primaryIntervalMs);
+
+  setInterval(() => {
+    console.log('Scheduled secondary update triggered');
+    void fetchSecondarySources(socketIO);
+  }, secondaryIntervalMs);
+
+  console.log(`Primary source refresh scheduled every ${primaryIntervalMs} ms`);
+  console.log(`Secondary sources refresh scheduled every ${secondaryIntervalMs} ms`);
 
   console.log('Data aggregation service started');
+};
+
+const fetchPrimarySources = async (socketIO: SocketIOServer): Promise<AggregationResult[]> => {
+  const results: AggregationResult[] = [];
+
+  try {
+    const officialResult = await scrapeOfficialSource();
+    results.push(officialResult);
+
+    if (officialResult.success) {
+      socketIO.emit('data-update', {
+        source: 'official',
+        timestamp: new Date(),
+        data: officialResult
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching official source:', error);
+    results.push({
+      success: false,
+      source: 'official',
+      error: (error as Error).message
+    });
+  }
+
+  socketIO.emit('aggregation-complete', {
+    timestamp: new Date(),
+    results
+  });
+
+  return results;
+};
+
+const fetchSecondarySources = async (socketIO: SocketIOServer): Promise<AggregationResult[]> => {
+  const results: AggregationResult[] = [];
+
+  try {
+    const ekantipurResult = await scrapeEkantipurSource();
+    results.push(ekantipurResult);
+
+    if (ekantipurResult.success) {
+      socketIO.emit('data-update', {
+        source: 'ekantipur',
+        timestamp: new Date(),
+        data: ekantipurResult
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching Ekantipur source:', error);
+    results.push({
+      success: false,
+      source: 'ekantipur',
+      error: (error as Error).message
+    });
+  }
+
+  try {
+    const onlinekhabarResult = await scrapeOnlineKhabarSource();
+    results.push(onlinekhabarResult);
+
+    if (onlinekhabarResult.success) {
+      socketIO.emit('data-update', {
+        source: 'onlinekhabar',
+        timestamp: new Date(),
+        data: onlinekhabarResult
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching OnlineKhabar source:', error);
+    results.push({
+      success: false,
+      source: 'onlinekhabar',
+      error: (error as Error).message
+    });
+  }
+
+  socketIO.emit('aggregation-complete', {
+    timestamp: new Date(),
+    results
+  });
+
+  return results;
 };
 
 export const fetchAllSources = async (socketIO: SocketIOServer): Promise<AggregationResult[]> => {
