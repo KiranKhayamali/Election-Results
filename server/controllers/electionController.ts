@@ -277,6 +277,33 @@ export const getLeadingCandidates = async (_req: Request, res: Response): Promis
 
 export const getAllProvincesResults = async (_req: Request, res: Response): Promise<void> => {
   try {
+    const latestOfficialOverviewUpdate = await ElectionUpdate.findOne({
+      source: 'official',
+      'data.resultsDeclared': { $exists: true }
+    }).sort({ timestamp: -1 });
+
+    const latestOfficialProvinceUpdate = await ElectionUpdate.findOne({
+      source: 'official',
+      title: 'Official Province Results Sync',
+      'data.provinces.0': { $exists: true }
+    }).sort({ timestamp: -1 });
+
+    const officialDeclaredTotal = Number(latestOfficialOverviewUpdate?.data?.resultsDeclared);
+    const officialProvinceDeclaredMap = new Map<number, number>();
+    const officialProvinceInProgressMap = new Map<number, number>();
+
+    const officialProvinces = Array.isArray(latestOfficialProvinceUpdate?.data?.provinces)
+      ? latestOfficialProvinceUpdate?.data?.provinces
+      : [];
+
+    for (const province of officialProvinces) {
+      const provinceNumber = Number(province?.provinceNumber);
+      if (!Number.isFinite(provinceNumber)) continue;
+
+      officialProvinceDeclaredMap.set(provinceNumber, Number(province?.declaredConstituencies) || 0);
+      officialProvinceInProgressMap.set(provinceNumber, Number(province?.countingInProgress) || 0);
+    }
+
     const provincesData = [];
 
     for (let provinceNum = 1; provinceNum <= 7; provinceNum++) {
@@ -330,8 +357,18 @@ export const getAllProvincesResults = async (_req: Request, res: Response): Prom
       }
 
       // Province summary stats
-      const completed = constituencies.filter(c => c.countingStatus === 'completed').length;
-      const inProgress = constituencies.filter(c => c.countingStatus === 'in-progress').length;
+      const completedFromDb = constituencies.filter(c => c.countingStatus === 'completed').length;
+      const inProgressFromDb = constituencies.filter(c => c.countingStatus === 'in-progress').length;
+      const completedFromOfficialProvince = officialProvinceDeclaredMap.get(provinceNum) || 0;
+
+      // Prefer the higher completed count to avoid under-reporting declared results.
+      const completed = Math.max(completedFromDb, completedFromOfficialProvince);
+
+      const inProgressFromOfficialProvince = officialProvinceInProgressMap.get(provinceNum);
+      const maxPossibleInProgress = Math.max(constituencies.length - completed, 0);
+      const inProgress = Number.isFinite(inProgressFromOfficialProvince)
+        ? Math.min(Number(inProgressFromOfficialProvince), maxPossibleInProgress)
+        : Math.max(maxPossibleInProgress, inProgressFromDb);
       
       // Get top candidates in this province
       const topCandidates = allCandidates.slice(0, 8);
@@ -349,10 +386,40 @@ export const getAllProvincesResults = async (_req: Request, res: Response): Prom
       });
     }
 
+    // Final reconciliation: ensure province-level completed totals align with official overview total.
+    if (Number.isFinite(officialDeclaredTotal) && officialDeclaredTotal > 0) {
+      const currentCompletedTotal = provincesData.reduce((sum, province) => sum + Number(province.completedCount || 0), 0);
+      let deficit = Math.max(officialDeclaredTotal - currentCompletedTotal, 0);
+
+      if (deficit > 0) {
+        const sortedByInProgress = [...provincesData].sort((a, b) => b.inProgressCount - a.inProgressCount);
+        let index = 0;
+
+        while (deficit > 0 && sortedByInProgress.length > 0) {
+          const province = sortedByInProgress[index % sortedByInProgress.length];
+          if (province.inProgressCount > 0) {
+            province.completedCount += 1;
+            province.inProgressCount -= 1;
+            province.notStartedCount = Math.max(
+              province.totalConstituencies - province.completedCount - province.inProgressCount,
+              0
+            );
+            deficit -= 1;
+          }
+
+          index += 1;
+          if (index > sortedByInProgress.length * 10) {
+            break;
+          }
+        }
+      }
+    }
+
     res.json({
       provinces: provincesData,
       totalProvinces: 7,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
+      officialDeclaredTotal: Number.isFinite(officialDeclaredTotal) ? officialDeclaredTotal : undefined
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch all provinces results', message: (error as Error).message });
