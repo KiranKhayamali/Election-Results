@@ -8,24 +8,77 @@ import { fetchAllSources } from '../services/aggregationService';
 export const getOverallResults = async (_req: Request, res: Response): Promise<void> => {
   try {
     const parties = await Party.find().sort({ seatsWon: -1, seatsLeading: -1 });
-    const totalConstituencies = await Constituency.countDocuments();
-    const completedConstituencies = await Constituency.countDocuments({ countingStatus: 'completed' });
+    const dbConstituencies = await Constituency.countDocuments();
+    const dbCompleted = await Constituency.countDocuments({ countingStatus: 'completed' });
     const totalCandidates = await Candidate.countDocuments();
+
+    const latestOfficialUpdate = await ElectionUpdate.findOne({
+      source: 'official',
+      'data.resultsDeclared': { $exists: true },
+      'data.partyStandings.0': { $exists: true }
+    }).sort({ timestamp: -1 });
+
+    const officialDeclared = Number(latestOfficialUpdate?.data?.resultsDeclared);
+    const officialTotal = Number(latestOfficialUpdate?.data?.totalConstituencies);
+
+    const totalConstituencies = Number.isFinite(officialTotal) && officialTotal > 0
+      ? officialTotal
+      : dbConstituencies;
+
+    const completedConstituenciesRaw = Number.isFinite(officialDeclared) && officialDeclared >= 0
+      ? officialDeclared
+      : dbCompleted;
     
-    const totalSeatsWon = parties.reduce((sum, party) => sum + party.seatsWon, 0);
-    const totalSeatsLeading = parties.reduce((sum, party) => sum + party.seatsLeading, 0);
+    const officialPartyStandings: Array<{ name: string; seatsWon: number; seatsLeading: number }> =
+      (latestOfficialUpdate?.data?.partyStandings as Array<{ name: string; seatsWon: number; seatsLeading: number }> | undefined)
+      || [];
+
+    const partyByName = new Map(parties.map((party) => [party.name, party]));
+
+    const mergedParties = parties.map((party) => {
+      const official = officialPartyStandings.find((p) => p.name === party.name);
+      if (!official) return party;
+
+      const merged = party.toObject();
+      merged.seatsWon = official.seatsWon;
+      merged.seatsLeading = official.seatsLeading;
+      return merged;
+    });
+
+    // Include official-only rows even if a party hasn't been created yet in Party collection.
+    for (const official of officialPartyStandings) {
+      if (!partyByName.has(official.name)) {
+        mergedParties.push({
+          _id: `official-${official.name}`,
+          name: official.name,
+          color: '#808080',
+          seatsWon: official.seatsWon,
+          seatsLeading: official.seatsLeading,
+          totalVotes: 0,
+          votePercentage: 0,
+          lastUpdated: latestOfficialUpdate?.timestamp || new Date(),
+          sources: []
+        } as any);
+      }
+    }
+
+    mergedParties.sort((a: any, b: any) => (b.seatsWon - a.seatsWon) || (b.seatsLeading - a.seatsLeading));
+
+    const totalSeatsWon = mergedParties.reduce((sum: number, party: any) => sum + Number(party.seatsWon || 0), 0);
+    const totalSeatsLeading = mergedParties.reduce((sum: number, party: any) => sum + Number(party.seatsLeading || 0), 0);
+    const completedConstituencies = Math.max(completedConstituenciesRaw, totalSeatsWon);
 
     res.json({
       summary: {
         totalConstituencies,
         completedConstituencies,
-        countingInProgress: totalConstituencies - completedConstituencies,
+        countingInProgress: Math.max(totalConstituencies - completedConstituencies, 0),
         totalCandidates,
         totalSeatsWon,
         totalSeatsLeading
       },
-      parties: parties.slice(0, 10), // Top 10 parties
-      lastUpdated: parties[0]?.lastUpdated || new Date()
+      parties: mergedParties.slice(0, 10), // Top 10 parties with official seats merged
+      lastUpdated: latestOfficialUpdate?.timestamp || parties[0]?.lastUpdated || new Date()
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch overall results', message: (error as Error).message });

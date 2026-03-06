@@ -1,5 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import type { AxiosResponse } from 'axios';
 import Party from '../../models/Party';
 import Candidate from '../../models/Candidate';
 import ElectionUpdate from '../../models/ElectionUpdate';
@@ -18,6 +19,36 @@ interface OfficialElectionStats {
   }[];
 }
 
+const OFFICIAL_NAME_MAP: Record<string, string> = {
+  'राष्ट्रिय स्वतन्त्र पार्टी': 'Rastriya Swatantra Party',
+  'नेपाली काँग्रेस': 'Nepali Congress',
+  'नेपाली कांग्रेस': 'Nepali Congress',
+  'नेपाल कम्युनिष्ट पार्टी (एकीकृत मार्क्सवादी लेनिनवादी)': 'CPN-UML',
+  'नेपाली कम्युनिष्ट पार्टी': 'Nepali Communist Party',
+  'राष्ट्रिय प्रजातन्त्र पार्टी': 'Rastriya Prajatantra Party',
+  'प्रगतिशील लोकतान्त्रिक पार्टी': 'Pragatishil Loktantrik Party',
+  'श्रम संस्कृति पार्टी': 'Shram Sanskriti Party',
+  'स्वतन्त्र': 'Independent'
+};
+
+const normalizeOfficialPartyName = (name: string): string => {
+  const trimmed = name.trim();
+  return OFFICIAL_NAME_MAP[trimmed] || trimmed;
+};
+
+const normalizeDigits = (value: string): string => {
+  const devanagariDigits = '०१२३४५६७८९';
+  return value.replace(/[०-९]/g, (d) => String(devanagariDigits.indexOf(d)));
+};
+
+const parseLocalizedInt = (value: string): number => {
+  const normalized = normalizeDigits(value).replace(/,/g, '').trim();
+  const parsed = parseInt(normalized, 10);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 /**
  * Fetch official election results from result.election.gov.np
  * This scrapes real-time data from the official Election Commission website
@@ -25,31 +56,65 @@ interface OfficialElectionStats {
 export async function scrapeOfficialElectionData(): Promise<OfficialElectionStats | null> {
   try {
     console.log('🔄 Fetching official election data from result.election.gov.np...');
-    
-    const url = 'https://result.election.gov.np/FPTPWLChartResult2082.aspx';
-    const response = await axios.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      },
-      timeout: 10000
-    });
+
+    const candidateUrls = [
+      'https://result.election.gov.np/',
+      'https://result.election.gov.np/FPTPWLChartResult2082.aspx'
+    ];
+
+    let response: AxiosResponse<string> | null = null;
+    let lastError: unknown = null;
+
+    for (const url of candidateUrls) {
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          response = await axios.get(url, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+            },
+            timeout: 12000
+          });
+          break;
+        } catch (err) {
+          lastError = err;
+          if (attempt === 1) {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+          }
+        }
+      }
+
+      if (response) {
+        break;
+      }
+    }
+
+    if (!response) {
+      throw lastError;
+    }
     
     const $ = cheerio.load(response.data);
     
-    // Parse total constituencies and results declared
-    // Pattern: प्रतिनिधि सभा (९४ / १६५) = House of Representatives (94 / 165)
-    const constituencyMatch = $('body').html()?.match(/\([\s\S]*?(\d+)\s*[/]\s*(\d+)[\s\S]*?\)/);
-    
-    let resultsDeclared = 94; // Default to last known
-    let totalConstituencies = 165; // Fixed number (FPTP constituencies)
-    
-    if (constituencyMatch) {
-      resultsDeclared = parseInt(constituencyMatch[1]) || 94;
-      totalConstituencies = parseInt(constituencyMatch[2]) || 165;
+    // Parse total constituencies and results declared from page text (supports Nepali digits).
+    const bodyText = normalizeDigits($('body').text().replace(/\s+/g, ' '));
+
+    let resultsDeclared = 0;
+    let totalConstituencies = 165;
+
+    const hsMatch = bodyText.match(/प्रतिनिधि सभा\s*\((\d+)\s*\/?\s*(\d+)\)/);
+    if (hsMatch) {
+      resultsDeclared = parseInt(hsMatch[1], 10) || 0;
+      totalConstituencies = parseInt(hsMatch[2], 10) || 165;
+    }
+
+    const declaredMatch = bodyText.match(/विजयी\s*:?\s*(\d+)/);
+    if (declaredMatch) {
+      resultsDeclared = parseInt(declaredMatch[1], 10) || resultsDeclared;
     }
     
-    // Parse party sitting data
+    // Parse party standings data
     const parties: OfficialElectionStats['parties'] = [];
+    const partyMap = new Map<string, { seatsWon: number; seatsLeading: number }>();
     
     // Extract party data from tables
     const rows = $('table tr');
@@ -57,31 +122,45 @@ export async function scrapeOfficialElectionData(): Promise<OfficialElectionStat
       const cells = $(row).find('td');
       if (cells.length >= 3) {
         const partyName = $(cells[0]).text().trim();
-        const won = parseInt($(cells[1]).text().trim()) || 0;
-        const leading = parseInt($(cells[2]).text().trim()) || 0;
+        const won = parseLocalizedInt($(cells[1]).text());
+        const leading = parseLocalizedInt($(cells[2]).text());
         
         if (partyName && (won > 0 || leading > 0)) {
-          parties.push({
-            name: partyName,
-            seatsWon: won,
-            seatsLeading: leading
-          });
+          const normalizedName = normalizeOfficialPartyName(partyName);
+          partyMap.set(normalizedName, { seatsWon: won, seatsLeading: leading });
         }
       }
     });
+
+    // Fallback parser: pull party rows directly from full text using known Nepali names.
+    for (const [nepaliName, englishName] of Object.entries(OFFICIAL_NAME_MAP)) {
+      const regex = new RegExp(`${escapeRegExp(normalizeDigits(nepaliName))}\\s+(\\d+)\\s+(\\d+)`, 'i');
+      const match = bodyText.match(regex);
+      if (match) {
+        const won = parseLocalizedInt(match[1]);
+        const leading = parseLocalizedInt(match[2]);
+        if (won > 0 || leading > 0) {
+          partyMap.set(englishName, { seatsWon: won, seatsLeading: leading });
+        }
+      }
+    }
+
+    partyMap.forEach((value, key) => {
+      parties.push({
+        name: key,
+        seatsWon: value.seatsWon,
+        seatsLeading: value.seatsLeading
+      });
+    });
     
-    // If we couldn't parse parties from table, use hardcoded recent official data
     if (parties.length === 0) {
-      parties.push(
-        { name: 'Rastriya Swatantra Party', seatsWon: 1, seatsLeading: 70 },
-        { name: 'Nepali Congress', seatsWon: 1, seatsLeading: 6 },
-        { name: 'CPN-UML', seatsWon: 0, seatsLeading: 6 },
-        { name: 'Nepali Communist Party', seatsWon: 0, seatsLeading: 6 },
-        { name: 'Rastriya Prajatantra Party', seatsWon: 0, seatsLeading: 1 },
-        { name: 'Pragatishil Loktantrik Party', seatsWon: 0, seatsLeading: 1 },
-        { name: 'Shram Sanskriti Party', seatsWon: 0, seatsLeading: 1 },
-        { name: 'Independent', seatsWon: 0, seatsLeading: 1 }
-      );
+      console.log('⚠️ Official page fetched but no party standings could be parsed this cycle.');
+    }
+
+    // Fallback: derive declared count from party won seats if header parsing misses it.
+    const seatsWonSum = parties.reduce((sum, p) => sum + p.seatsWon, 0);
+    if (resultsDeclared <= 0 && seatsWonSum > 0) {
+      resultsDeclared = seatsWonSum;
     }
     
     // Get total candidates from database (since this doesn't change much)
@@ -185,6 +264,11 @@ export async function syncOfficialElectionData(io?: any): Promise<OfficialElecti
       console.log('⚠️ Could not fetch official data, skipping update');
       return null;
     }
+
+    if (!stats.parties || stats.parties.length === 0) {
+      console.log('⚠️ Official data contained no party standings, skipping write for this cycle');
+      return null;
+    }
     
     // Update parties with official data
     await updatePartiesFromOfficialData(stats);
@@ -198,7 +282,8 @@ export async function syncOfficialElectionData(io?: any): Promise<OfficialElecti
         totalConstituencies: stats.totalConstituencies,
         countingInProgress: stats.countingInProgress,
         totalCandidates: stats.totalCandidates,
-        partyCount: stats.parties.length
+        partyCount: stats.parties.length,
+        partyStandings: stats.parties
       }
     );
     

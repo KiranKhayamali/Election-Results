@@ -4,7 +4,7 @@ import { scrapeEkantipurSource } from './scrapers/ekantipurScraper';
 import { scrapeOnlineKhabarSource } from './scrapers/onlinekhabarScraper';
 import { AggregationResult } from '../types';
 
-const DEFAULT_PRIMARY_INTERVAL_MS = 5 * 60 * 1000;
+const DEFAULT_PRIMARY_INTERVAL_MS = 1 * 60 * 1000;
 const DEFAULT_SECONDARY_INTERVAL_MS = 1 * 60 * 1000;
 
 const getIntervalMs = (value: string | undefined, fallbackMs: number): number => {

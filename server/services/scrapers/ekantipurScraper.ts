@@ -1,3 +1,5 @@
+import axios from 'axios';
+import * as cheerio from 'cheerio';
 import Party from '../../models/Party';
 import Candidate from '../../models/Candidate';
 import Constituency from '../../models/Constituency';
@@ -76,79 +78,101 @@ const PARTY_COLORS: { [key: string]: string } = {
   'Nepal Sadbhavana Party': '#1E90FF'
 };
 
-// Real seat data from OFFICIAL election website - result.election.gov.np
-const PARTY_SEAT_DATA: { [key: string]: { seatsWon: number; seatsLeading: number; totalVotes: number } } = {
-  'Rastriya Swatantra Party': { seatsWon: 1, seatsLeading: 70, totalVotes: 1124557 },
-  'Nepali Congress': { seatsWon: 1, seatsLeading: 6, totalVotes: 2666262 },
-  'CPN-UML': { seatsWon: 0, seatsLeading: 6, totalVotes: 2791734 },
-  'Nepali Communist Party': { seatsWon: 0, seatsLeading: 6, totalVotes: 245789 },
-  'Nepal Communist Party (Maoist)': { seatsWon: 0, seatsLeading: 0, totalVotes: 1162931 },
-  'Rastriya Prajatantra Party': { seatsWon: 0, seatsLeading: 1, totalVotes: 586659 },
-  'Pragatishil Loktantrik Party': { seatsWon: 0, seatsLeading: 1, totalVotes: 54321 },
-  'Shram Sanskriti Party': { seatsWon: 0, seatsLeading: 1, totalVotes: 98765 },
-  'Independent': { seatsWon: 0, seatsLeading: 1, totalVotes: 0 },
-  'Janata Samjbadi Party-Nepal': { seatsWon: 0, seatsLeading: 0, totalVotes: 420946 },
-  'Janamat Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 394523 },
-  'CPN (Unified Socialist)': { seatsWon: 0, seatsLeading: 0, totalVotes: 294411 },
-  'Nagarik Unmukti Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 271663 },
-  'Loktantrik Samajwadi Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 167282 },
-  'Nepal Workers and Peasants Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 75064 },
-  'Hamro Nepali Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 55620 },
-  'Ujaylo Nepal Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 189234 },
-  'Mongol National Organization': { seatsWon: 0, seatsLeading: 0, totalVotes: 87654 },
-  'Sanghiya Loktantrik Rastriya Manch': { seatsWon: 0, seatsLeading: 0, totalVotes: 45321 },
-  'Janata Samajbadi Party (Ekal Chunab Chinha)': { seatsWon: 0, seatsLeading: 0, totalVotes: 23456 },
-  'Nepal Janamukti Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 19876 },
-  'Nepal Majdoor Kisan Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 76543 },
-  'Rastriya Pariwartan Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 12345 },
-  'Rastriya Janamukti Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 11234 },
-  'Nepal Communist Party (Sainyukta)': { seatsWon: 0, seatsLeading: 0, totalVotes: 28765 },
-  'National Republic Nepal': { seatsWon: 0, seatsLeading: 0, totalVotes: 34123 },
-  'Nepal Communist Party Marxist (Pushpalal)': { seatsWon: 0, seatsLeading: 0, totalVotes: 4567 },
-  'People First Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 3456 },
-  'Rastriya Janamorcha': { seatsWon: 0, seatsLeading: 0, totalVotes: 45678 },
-  'Nepali Janashramdan Sanskriti Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 2341 },
-  'Aam Janata Party (Ekal Chunab Chinha)': { seatsWon: 0, seatsLeading: 0, totalVotes: 67890 },
-  'Miteri Party Nepal': { seatsWon: 0, seatsLeading: 0, totalVotes: 23456 },
-  'Rastriya Urjashil Party, Nepal': { seatsWon: 0, seatsLeading: 0, totalVotes: 3456 },
-  'Sainyukta Nagarik Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 18765 },
-  'Jaya Matribhumi Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 10234 },
-  'Nagarik Unmukti Party, Nepal (Ekal Chunab Chinha)': { seatsWon: 0, seatsLeading: 0, totalVotes: 21345 },
-  'Rastra Nirman Dal Nepal': { seatsWon: 0, seatsLeading: 0, totalVotes: 9876 },
-  'Samabeshi Samajbadi Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 5678 },
-  'Sarbhobham Nagarik Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 5432 },
-  'Rastriya Sajha Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 1234 },
-  'Nepal Loktantrik Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 4567 },
-  'Nepal Janata Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 17654 },
-  'Samabeshi Samajbadi Party Nepal': { seatsWon: 0, seatsLeading: 0, totalVotes: 2345 },
-  'Nepali Janata Dal': { seatsWon: 0, seatsLeading: 0, totalVotes: 4321 },
-  'Nagarik Sarwochata Party Nepal (Ekal Chunab Chinha)': { seatsWon: 0, seatsLeading: 0, totalVotes: 3123 },
-  'Nepal Janata Samrakchhyan Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 2765 },
-  'Rastriya Ekata Dal': { seatsWon: 0, seatsLeading: 0, totalVotes: 4234 },
-  'Swabhiman Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 2123 },
-  'Nepal Sangyhia Samajbadi Party (Ekal Chunab Chinha)': { seatsWon: 0, seatsLeading: 0, totalVotes: 7654 },
-  'Nepalka Lagi Nepali Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 8765 },
-  'Jana Adhikar Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 5432 },
-  'Janata Loktantrik Party, Nepal': { seatsWon: 0, seatsLeading: 0, totalVotes: 3543 },
-  'Bahujan Ekata Party Nepal (Ekal Chunab Chinha)': { seatsWon: 0, seatsLeading: 0, totalVotes: 6543 },
-  'Bahujan Shakti Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 3234 },
-  'Itihasik Janata Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 1123 },
-  'Janadesh Party Nepal (Ekal Chunab Chinha)': { seatsWon: 0, seatsLeading: 0, totalVotes: 3654 },
-  'Rastriya Janata Party Nepal': { seatsWon: 0, seatsLeading: 0, totalVotes: 1234 },
-  'Rastriya Mukti Aandolan, Nepal': { seatsWon: 0, seatsLeading: 0, totalVotes: 3123 },
-  'Gatishil Loktantrik Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 2876 },
-  'United Nepal Democratic Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 2345 },
-  'Prajatantrik Party Nepal': { seatsWon: 0, seatsLeading: 0, totalVotes: 2654 },
-  'Nepal Janasewa Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 6543 },
-  'Triumul Nepal': { seatsWon: 0, seatsLeading: 0, totalVotes: 2876 },
-  'Nepal Communist Party (Marxist) (Ekal Chunab Chinha)': { seatsWon: 0, seatsLeading: 0, totalVotes: 1234 },
-  'Rastriya Nagarik Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 1123 },
-  'Nepal Manabta Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 5432 },
-  'Nepal Matribhoomi Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 1234 },
-  'Gandhibadi Party Nepal': { seatsWon: 0, seatsLeading: 0, totalVotes: 1123 },
-  'Rastriya Janamat Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 3654 },
-  'Nepal Sadbhavana Party': { seatsWon: 0, seatsLeading: 0, totalVotes: 1234 },
-  'Rastriya Mukti Party Nepal (Ekal Chunab Chinha)': { seatsWon: 0, seatsLeading: 0, totalVotes: 29876 }
+// Fallback vote totals used only if live Ekantipur parsing fails.
+const PARTY_VOTE_FALLBACK: { [key: string]: number } = {
+  'CPN-UML': 2791734,
+  'Nepali Congress': 2666262,
+  'Nepal Communist Party (Maoist)': 1162931,
+  'Rastriya Swatantra Party': 1124557,
+  'Rastriya Prajatantra Party': 586659,
+  'Janata Samjbadi Party-Nepal': 420946,
+  'Janamat Party': 394523,
+  'Nagarik Unmukti Party': 271663,
+  'Nepali Communist Party': 245789,
+  'Ujaylo Nepal Party': 189234
+};
+
+const PARTY_NAME_ALIASES: Record<string, string[]> = {
+  'Nepal Communist Party (Maoist)': ['CPN (Maoist Center)', 'Nepal Communist Party (Maoist)'],
+  'Janata Samjbadi Party-Nepal': ['Janata Samajbadi Party'],
+  'Nepali Communist Party': ['Nepali Communist Party', 'CPN'],
+  'Rastriya Swatantra Party': ['Rastriya Swatantra Party'],
+  'CPN-UML': ['CPN-UML']
+};
+
+const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const parseVote = (raw: string): number => {
+  const cleaned = raw.replace(/,/g, '').trim();
+  const parsed = Number(cleaned);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const extractPartyVotesFromEkantipur = (html: string): Map<string, number> => {
+  const $ = cheerio.load(html);
+  const votesByParty = new Map<string, number>();
+
+  // Preferred path: Federal proportional list typically uses javascript:void(0) links
+  // with text shape: "Party Name 27,91,734".
+  $('a[href="javascript:void(0)"]').each((_idx, el) => {
+    const text = $(el).text().replace(/\s+/g, ' ').trim();
+    const match = text.match(/^(.*)\s+([\d,]{4,})$/);
+    if (!match) return;
+
+    const scrapedName = match[1].trim();
+    const votes = parseVote(match[2]);
+    if (!votes) return;
+
+    const entry = Object.keys(PARTY_COLORS).find((partyName) => {
+      if (partyName.toLowerCase() === scrapedName.toLowerCase()) return true;
+      const aliases = PARTY_NAME_ALIASES[partyName] || [];
+      return aliases.some((alias) => alias.toLowerCase() === scrapedName.toLowerCase());
+    });
+
+    if (entry) {
+      votesByParty.set(entry, votes);
+    }
+  });
+
+  if (votesByParty.size > 0) {
+    return votesByParty;
+  }
+
+  // Fallback path: free-text search when anchor extraction is unavailable.
+  const pageText = $('body').text().replace(/\s+/g, ' ');
+
+  for (const partyName of Object.keys(PARTY_COLORS)) {
+    const aliases = [partyName, ...(PARTY_NAME_ALIASES[partyName] || [])];
+    for (const alias of aliases) {
+      const regex = new RegExp(`${escapeRegExp(alias)}\\s+([\\d,]{4,})`, 'i');
+      const match = pageText.match(regex);
+      if (match) {
+        const votes = parseVote(match[1]);
+        if (votes > 0) {
+          votesByParty.set(partyName, votes);
+          break;
+        }
+      }
+    }
+  }
+
+  return votesByParty;
+};
+
+const hydrateSampleCandidateVotes = (html: string, sampleCandidates: Array<{ name: string; votes: number }>): void => {
+  const $ = cheerio.load(html);
+  const text = $('body').text().replace(/\s+/g, ' ');
+
+  sampleCandidates.forEach((candidate) => {
+    const regex = new RegExp(`${escapeRegExp(candidate.name)}\\s+([\\d,]{1,})`, 'i');
+    const match = text.match(regex);
+    if (match) {
+      const votes = parseVote(match[1]);
+      if (votes >= 0) {
+        candidate.votes = votes;
+      }
+    }
+  });
 };
 
 // Sample data structure for type checking
@@ -179,12 +203,20 @@ export const scrapeEkantipurSource = async (): Promise<AggregationResult> => {
   try {
     console.log('🚀 Starting Ekantipur scraper:', EKANTIPUR_URL);
     
-    // Note: The ekantipur website is JavaScript-heavy, so direct HTML parsing is limited
-    // We use real data from the website that was manually extracted
-    // For production use, consider using Puppeteer or Playwright for JS rendering
-    
-    // Calculate total votes for percentage calculation
-    const totalVotes = Object.values(PARTY_SEAT_DATA).reduce((sum, party) => sum + party.totalVotes, 0);
+    const response = await axios.get(EKANTIPUR_URL, {
+      timeout: 30000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
+
+    const votesFromPage = extractPartyVotesFromEkantipur(response.data);
+
+    // Calculate total votes for percentage calculation from live page when available.
+    const totalVotes = (votesFromPage.size > 0
+      ? Array.from(votesFromPage.values())
+      : Object.values(PARTY_VOTE_FALLBACK)
+    ).reduce((sum, votes) => sum + votes, 0);
     console.log(`📊 Total votes across all parties: ${totalVotes.toLocaleString('en-US')}`);
     
     // Step 1: Ensure all known parties exist in database with seat data
@@ -192,32 +224,30 @@ export const scrapeEkantipurSource = async (): Promise<AggregationResult> => {
     for (const [partyName, color] of Object.entries(PARTY_COLORS)) {
       try {
         let party = await Party.findOne({ name: partyName });
-        const seatData = PARTY_SEAT_DATA[partyName] || { seatsWon: 0, seatsLeading: 0, totalVotes: 0 };
-        const votePercentage = totalVotes > 0 ? (seatData.totalVotes / totalVotes) * 100 : 0;
+        const liveVotes = votesFromPage.get(partyName);
+        const totalVotesForParty = liveVotes ?? PARTY_VOTE_FALLBACK[partyName] ?? party?.totalVotes ?? 0;
+        const votePercentage = totalVotes > 0 ? (totalVotesForParty / totalVotes) * 100 : 0;
         
         if (!party) {
           party = await Party.create({
             name: partyName,
             color: color,
-            seatsWon: seatData.seatsWon,
-            seatsLeading: seatData.seatsLeading,
-            totalVotes: seatData.totalVotes,
+            // Seats come from official source, not Ekantipur.
+            seatsWon: 0,
+            seatsLeading: 0,
+            totalVotes: totalVotesForParty,
             votePercentage: votePercentage,
             sources: [{
               name: 'ekantipur',
               url: EKANTIPUR_URL,
               timestamp: new Date(),
-              seatsWon: seatData.seatsWon,
-              seatsLeading: seatData.seatsLeading,
-              totalVotes: seatData.totalVotes
+              totalVotes: totalVotesForParty
             }]
           });
           console.log(`✅ Created party: ${partyName}`);
         } else {
-          // Update existing party with latest vote data
-          party.seatsWon = seatData.seatsWon;
-          party.seatsLeading = seatData.seatsLeading;
-          party.totalVotes = seatData.totalVotes;
+          // Update votes from Ekantipur while preserving official seat counts.
+          party.totalVotes = totalVotesForParty;
           party.votePercentage = votePercentage;
           
           // Add source reference if not already present
@@ -226,14 +256,12 @@ export const scrapeEkantipurSource = async (): Promise<AggregationResult> => {
               name: 'ekantipur',
               url: EKANTIPUR_URL,
               timestamp: new Date(),
-              seatsWon: seatData.seatsWon,
-              seatsLeading: seatData.seatsLeading,
-              totalVotes: seatData.totalVotes
+              totalVotes: totalVotesForParty
             });
           }
           party.lastUpdated = new Date();
           await party.save();
-          console.log(`✅ Updated party: ${partyName} - Votes: ${seatData.totalVotes.toLocaleString('en-US')}, ${votePercentage.toFixed(2)}%`);
+          console.log(`✅ Updated party: ${partyName} - Votes: ${totalVotesForParty.toLocaleString('en-US')}, ${votePercentage.toFixed(2)}%`);
         }
         partiesUpdated++;
       } catch (err) {
@@ -324,6 +352,8 @@ export const scrapeEkantipurSource = async (): Promise<AggregationResult> => {
     }
     
     // Create sample candidates
+    hydrateSampleCandidateVotes(response.data, sampleCandidates);
+
     for (const candidateData of sampleCandidates) {
       try {
         const constituency = await Constituency.findOne({
