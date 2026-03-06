@@ -214,7 +214,8 @@
     "install-all": "npm install && cd client && npm install",
     "build": "npm run build:server && cd client && npm run build",
     "scrape:ekantipur": "ts-node server/scripts/testScraper.ts",
-    "init:constituencies": "ts-node server/scripts/initConstituencies.ts"
+    "init:constituencies": "ts-node server/scripts/initConstituencies.ts",
+    "init:candidates": "ts-node server/scripts/initCandidates.ts"
   },
   "keywords": [],
   "author": "",
