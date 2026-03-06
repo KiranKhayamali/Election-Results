@@ -19,6 +19,15 @@ interface OfficialElectionStats {
   }[];
 }
 
+interface OfficialPartyJsonRow {
+  PartyId: number;
+  PoliticalPartyName: string;
+  TotWin: number;
+  TotLead: number;
+  TotWinLead: number;
+  SymbolID?: number;
+}
+
 const OFFICIAL_NAME_MAP: Record<string, string> = {
   'राष्ट्रिय स्वतन्त्र पार्टी': 'Rastriya Swatantra Party',
   'नेपाली काँग्रेस': 'Nepali Congress',
@@ -29,6 +38,17 @@ const OFFICIAL_NAME_MAP: Record<string, string> = {
   'प्रगतिशील लोकतान्त्रिक पार्टी': 'Pragatishil Loktantrik Party',
   'श्रम संस्कृति पार्टी': 'Shram Sanskriti Party',
   'स्वतन्त्र': 'Independent'
+};
+
+const OFFICIAL_PARTY_ID_MAP: Record<number, string> = {
+  158: 'Rastriya Swatantra Party',
+  2: 'Nepali Congress',
+  1: 'CPN-UML',
+  166: 'Nepali Communist Party',
+  3: 'Rastriya Prajatantra Party',
+  4: 'Pragatishil Loktantrik Party',
+  179: 'Shram Sanskriti Party',
+  9999: 'Independent'
 };
 
 const normalizeOfficialPartyName = (name: string): string => {
@@ -48,6 +68,80 @@ const parseLocalizedInt = (value: string): number => {
 };
 
 const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const decodePossiblyMojibake = (value: string): string => {
+  if (!value) return value;
+  if (/[\u0900-\u097F]/.test(value)) return value;
+
+  try {
+    const decoded = Buffer.from(value, 'latin1').toString('utf8');
+    return decoded || value;
+  } catch {
+    return value;
+  }
+};
+
+const extractCsrfToken = (setCookieHeaders: string[] = []): string | null => {
+  for (const cookieLine of setCookieHeaders) {
+    const match = cookieLine.match(/CsrfToken=([^;]+)/i);
+    if (match) return match[1];
+  }
+  return null;
+};
+
+const buildCookieHeader = (setCookieHeaders: string[] = []): string => {
+  return setCookieHeaders
+    .map((line) => line.split(';')[0])
+    .filter(Boolean)
+    .join('; ');
+};
+
+const fetchOfficialPartyStandingsJson = async (): Promise<OfficialElectionStats['parties']> => {
+  const homeUrl = 'https://result.election.gov.np/';
+  const jsonUrl = 'https://result.election.gov.np/Handlers/SecureJson.ashx?file=JSONFiles/Election2082/Common/HORPartyTop5.txt';
+
+  const homeResp = await axios.get(homeUrl, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+    },
+    timeout: 12000
+  });
+
+  const setCookieHeaders = (homeResp.headers['set-cookie'] || []) as string[];
+  const csrfToken = extractCsrfToken(setCookieHeaders);
+  const cookieHeader = buildCookieHeader(setCookieHeaders);
+
+  if (!csrfToken || !cookieHeader) {
+    throw new Error('Official site CSRF/cookie not available for SecureJson request');
+  }
+
+  const jsonResp = await axios.get<OfficialPartyJsonRow[]>(jsonUrl, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      Accept: 'application/json, text/plain, */*',
+      'X-CSRF-Token': csrfToken,
+      'X-Requested-With': 'XMLHttpRequest',
+      Referer: homeUrl,
+      Cookie: cookieHeader
+    },
+    timeout: 12000
+  });
+
+  const rows = Array.isArray(jsonResp.data) ? jsonResp.data : [];
+
+  return rows
+    .map((row) => {
+      const decodedName = decodePossiblyMojibake(row.PoliticalPartyName || '').trim();
+      const mappedName = OFFICIAL_PARTY_ID_MAP[row.PartyId] || normalizeOfficialPartyName(decodedName);
+      return {
+        name: mappedName,
+        seatsWon: Number(row.TotWin) || 0,
+        seatsLeading: Number(row.TotLead) || 0
+      };
+    })
+    .filter((row) => row.name && (row.seatsWon > 0 || row.seatsLeading > 0));
+};
 
 /**
  * Fetch official election results from result.election.gov.np
@@ -115,32 +209,46 @@ export async function scrapeOfficialElectionData(): Promise<OfficialElectionStat
     // Parse party standings data
     const parties: OfficialElectionStats['parties'] = [];
     const partyMap = new Map<string, { seatsWon: number; seatsLeading: number }>();
-    
-    // Extract party data from tables
-    const rows = $('table tr');
-    rows.each((_index, row) => {
-      const cells = $(row).find('td');
-      if (cells.length >= 3) {
-        const partyName = $(cells[0]).text().trim();
-        const won = parseLocalizedInt($(cells[1]).text());
-        const leading = parseLocalizedInt($(cells[2]).text());
-        
-        if (partyName && (won > 0 || leading > 0)) {
-          const normalizedName = normalizeOfficialPartyName(partyName);
-          partyMap.set(normalizedName, { seatsWon: won, seatsLeading: leading });
-        }
+
+    // Preferred source: official JSON feed used by the website itself.
+    try {
+      const jsonStandings = await fetchOfficialPartyStandingsJson();
+      for (const party of jsonStandings) {
+        partyMap.set(party.name, { seatsWon: party.seatsWon, seatsLeading: party.seatsLeading });
       }
-    });
+    } catch (jsonError) {
+      console.log('⚠️ Could not fetch official SecureJson standings, falling back to table/text parsing.');
+    }
+    
+    if (partyMap.size === 0) {
+      // Extract party data from tables
+      const rows = $('table tr');
+      rows.each((_index, row) => {
+        const cells = $(row).find('td');
+        if (cells.length >= 3) {
+          const partyName = $(cells[0]).text().trim();
+          const won = parseLocalizedInt($(cells[1]).text());
+          const leading = parseLocalizedInt($(cells[2]).text());
+          
+          if (partyName && (won > 0 || leading > 0)) {
+            const normalizedName = normalizeOfficialPartyName(partyName);
+            partyMap.set(normalizedName, { seatsWon: won, seatsLeading: leading });
+          }
+        }
+      });
+    }
 
     // Fallback parser: pull party rows directly from full text using known Nepali names.
-    for (const [nepaliName, englishName] of Object.entries(OFFICIAL_NAME_MAP)) {
-      const regex = new RegExp(`${escapeRegExp(normalizeDigits(nepaliName))}\\s+(\\d+)\\s+(\\d+)`, 'i');
-      const match = bodyText.match(regex);
-      if (match) {
-        const won = parseLocalizedInt(match[1]);
-        const leading = parseLocalizedInt(match[2]);
-        if (won > 0 || leading > 0) {
-          partyMap.set(englishName, { seatsWon: won, seatsLeading: leading });
+    if (partyMap.size === 0) {
+      for (const [nepaliName, englishName] of Object.entries(OFFICIAL_NAME_MAP)) {
+        const regex = new RegExp(`${escapeRegExp(normalizeDigits(nepaliName))}\\s+(\\d+)\\s+(\\d+)`, 'i');
+        const match = bodyText.match(regex);
+        if (match) {
+          const won = parseLocalizedInt(match[1]);
+          const leading = parseLocalizedInt(match[2]);
+          if (won > 0 || leading > 0) {
+            partyMap.set(englishName, { seatsWon: won, seatsLeading: leading });
+          }
         }
       }
     }
