@@ -192,7 +192,7 @@ export const getAllProvincesResults = async (_req: Request, res: Response): Prom
             constituency: constituency.name,
             constituencyNumber: constituency.constituencyNumber,
             leadingCandidate: leader.name,
-            leadingParty: typeof leader.party === 'object' ? leader.party.name : 'Unknown',
+            leadingParty: typeof leader.party === 'object' && leader.party && 'name' in leader.party ? leader.party.name : 'Unknown',
             leadingVotes: leader.votesReceived,
             secondPlaceCandidate: second ? second.name : 'N/A',
             secondPlaceVotes: second ? second.votesReceived : 0,

@@ -213,7 +213,8 @@
     "client": "npm start --prefix client",
     "install-all": "npm install && cd client && npm install",
     "build": "npm run build:server && cd client && npm run build",
-    "scrape:ekantipur": "ts-node server/scripts/testScraper.ts"
+    "scrape:ekantipur": "ts-node server/scripts/testScraper.ts",
+    "init:constituencies": "ts-node server/scripts/initConstituencies.ts"
   },
   "keywords": [],
   "author": "",

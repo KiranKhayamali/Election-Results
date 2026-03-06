@@ -1,0 +1,964 @@
+{
+  "constituencies": [
+    {
+      "name": "Taplejung-1",
+      "constituencyNumber": 1,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Panchthar-1",
+      "constituencyNumber": 2,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Ilam-1",
+      "constituencyNumber": 3,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Ilam-2",
+      "constituencyNumber": 4,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Jhapa-1",
+      "constituencyNumber": 5,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Jhapa-2",
+      "constituencyNumber": 6,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Jhapa-3",
+      "constituencyNumber": 7,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Jhapa-4",
+      "constituencyNumber": 8,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Jhapa-5",
+      "constituencyNumber": 9,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Morang-1",
+      "constituencyNumber": 10,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Morang-2",
+      "constituencyNumber": 11,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Morang-3",
+      "constituencyNumber": 12,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Morang-4",
+      "constituencyNumber": 13,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Morang-5",
+      "constituencyNumber": 14,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Morang-6",
+      "constituencyNumber": 15,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Sunsari-1",
+      "constituencyNumber": 16,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Sunsari-2",
+      "constituencyNumber": 17,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Sunsari-3",
+      "constituencyNumber": 18,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Dhankuta-1",
+      "constituencyNumber": 19,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Sankhuwasabha-1",
+      "constituencyNumber": 20,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Bhojpur-1",
+      "constituencyNumber": 21,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Terhathum-1",
+      "constituencyNumber": 22,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Udayapur-1",
+      "constituencyNumber": 23,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Khotang-1",
+      "constituencyNumber": 24,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Okhaldhunga-1",
+      "constituencyNumber": 25,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Solukhumbu-1",
+      "constituencyNumber": 26,
+      "province": "Koshi",
+      "provinceNumber": 1
+    },
+    {
+      "name": "Saptari-1",
+      "constituencyNumber": 1,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Saptari-2",
+      "constituencyNumber": 2,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Saptari-3",
+      "constituencyNumber": 3,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Saptari-4",
+      "constituencyNumber": 4,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Siraha-1",
+      "constituencyNumber": 5,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Siraha-2",
+      "constituencyNumber": 6,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Siraha-3",
+      "constituencyNumber": 7,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Dhanusha-1",
+      "constituencyNumber": 8,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Dhanusha-2",
+      "constituencyNumber": 9,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Dhanusha-3",
+      "constituencyNumber": 10,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Dhanusha-4",
+      "constituencyNumber": 11,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Dhanusha-5",
+      "constituencyNumber": 12,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Mahottari-1",
+      "constituencyNumber": 13,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Mahottari-2",
+      "constituencyNumber": 14,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Mahottari-3",
+      "constituencyNumber": 15,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Sarlahi-1",
+      "constituencyNumber": 16,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Sarlahi-2",
+      "constituencyNumber": 17,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Sarlahi-3",
+      "constituencyNumber": 18,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Sarlahi-4",
+      "constituencyNumber": 19,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Rautahat-1",
+      "constituencyNumber": 20,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Rautahat-2",
+      "constituencyNumber": 21,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Rautahat-3",
+      "constituencyNumber": 22,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Bara-1",
+      "constituencyNumber": 23,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Bara-2",
+      "constituencyNumber": 24,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Bara-3",
+      "constituencyNumber": 25,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Bara-4",
+      "constituencyNumber": 26,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Parsa-1",
+      "constituencyNumber": 27,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Parsa-2",
+      "constituencyNumber": 28,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Parsa-3",
+      "constituencyNumber": 29,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Parsa-4",
+      "constituencyNumber": 30,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Sindhuli-1",
+      "constituencyNumber": 31,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Sindhuli-2",
+      "constituencyNumber": 32,
+      "province": "Madhesh",
+      "provinceNumber": 2
+    },
+    {
+      "name": "Kathmandu-1",
+      "constituencyNumber": 1,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Kathmandu-2",
+      "constituencyNumber": 2,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Kathmandu-3",
+      "constituencyNumber": 3,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Kathmandu-4",
+      "constituencyNumber": 4,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Kathmandu-5",
+      "constituencyNumber": 5,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Kathmandu-6",
+      "constituencyNumber": 6,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Kathmandu-7",
+      "constituencyNumber": 7,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Kathmandu-8",
+      "constituencyNumber": 8,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Kathmandu-9",
+      "constituencyNumber": 9,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Kathmandu-10",
+      "constituencyNumber": 10,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Lalitpur-1",
+      "constituencyNumber": 11,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Lalitpur-2",
+      "constituencyNumber": 12,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "La litpur-3",
+      "constituencyNumber": 13,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Bhaktapur-1",
+      "constituencyNumber": 14,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Bhaktapur-2",
+      "constituencyNumber": 15,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Nuwakot-1",
+      "constituencyNumber": 16,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Rasuwa-1",
+      "constituencyNumber": 17,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Dhading-1",
+      "constituencyNumber": 18,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Dhading-2",
+      "constituencyNumber": 19,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Makwanpur-1",
+      "constituencyNumber": 20,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Makwanpur-2",
+      "constituencyNumber": 21,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Chitwan-1",
+      "constituencyNumber": 22,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Chitwan-2",
+      "constituencyNumber": 23,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Chitwan-3",
+      "constituencyNumber": 24,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Kavrepalanchok-1",
+      "constituencyNumber": 25,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Kavrepalanchok-2",
+      "constituencyNumber": 26,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Sindhupalchok-1",
+      "constituencyNumber": 27,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Sindhupalchok-2",
+      "constituencyNumber": 28,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Ramechhap-1",
+      "constituencyNumber": 29,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Dolakha-1",
+      "constituencyNumber": 30,
+      "province": "Bagmati",
+      "provinceNumber": 3
+    },
+    {
+      "name": "Gorkha-1",
+      "constituencyNumber": 31,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Gorkha-2",
+      "constituencyNumber": 32,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Manang-1",
+      "constituencyNumber": 33,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Lamjung-1",
+      "constituencyNumber": 34,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Tanahun-1",
+      "constituencyNumber": 35,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Tanahun-2",
+      "constituencyNumber": 36,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Kaski-1",
+      "constituencyNumber": 37,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Kaski-2",
+      "constituencyNumber": 38,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Kaski-3",
+      "constituencyNumber": 39,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Syangja-1",
+      "constituencyNumber": 40,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Syangja-2",
+      "constituencyNumber": 41,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Parbat-1",
+      "constituencyNumber": 42,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Mustang-1",
+      "constituencyNumber": 43,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Myagdi-1",
+      "constituencyNumber": 44,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Baglung-1",
+      "constituencyNumber": 45,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Baglung-2",
+      "constituencyNumber": 46,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Nawalparasi-East-1",
+      "constituencyNumber": 47,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Nawalparasi-East-2",
+      "constituencyNumber": 48,
+      "province": "Gandaki",
+      "provinceNumber": 4
+    },
+    {
+      "name": "Gulmi-1",
+      "constituencyNumber": 1,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Gulmi-2",
+      "constituencyNumber": 2,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Palpa-1",
+      "constituencyNumber": 3,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Palpa-2",
+      "constituencyNumber": 4,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Rupandehi-1",
+      "constituencyNumber": 5,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Rupandehi-2",
+      "constituencyNumber": 6,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Rupandehi-3",
+      "constituencyNumber": 7,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Rupandehi-4",
+      "constituencyNumber": 8,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Kapilvastu-1",
+      "constituencyNumber": 9,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Kapilvastu-2",
+      "constituencyNumber": 10,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Kapilvastu-3",
+      "constituencyNumber": 11,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Arghakhanchi-1",
+      "constituencyNumber": 12,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Pyuthan-1",
+      "constituencyNumber": 13,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Rolpa-1",
+      "constituencyNumber": 14,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Rukum-East-1",
+      "constituencyNumber": 15,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Dang-1",
+      "constituencyNumber": 16,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Dang-2",
+      "constituencyNumber": 17,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Dang-3",
+      "constituencyNumber": 18,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Banke-1",
+      "constituencyNumber": 19,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Banke-2",
+      "constituencyNumber": 20,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Banke-3",
+      "constituencyNumber": 21,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Bardiya-1",
+      "constituencyNumber": 22,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Bardiya-2",
+      "constituencyNumber": 23,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Nawalparasi-West-1",
+      "constituencyNumber": 24,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Nawalparasi-West-2",
+      "constituencyNumber": 25,
+      "province": "Lumbini",
+      "provinceNumber": 5
+    },
+    {
+      "name": "Rukum-West-1",
+      "constituencyNumber": 1,
+      "province": "Karnali",
+      "provinceNumber": 6
+    },
+    {
+      "name": "Salyan-1",
+      "constituencyNumber": 2,
+      "province": "Karnali",
+      "provinceNumber": 6
+    },
+    {
+      "name": "Dolpa-1",
+      "constituencyNumber": 3,
+      "province": "Karnali",
+      "provinceNumber": 6
+    },
+    {
+      "name": "Jajarkot-1",
+      "constituencyNumber": 4,
+      "province": "Karnali",
+      "provinceNumber": 6
+    },
+    {
+      "name": "Mugu-1",
+      "constituencyNumber": 5,
+      "province": "Karnali",
+      "provinceNumber": 6
+    },
+    {
+      "name": "Humla-1",
+      "constituencyNumber": 6,
+      "province": "Karnali",
+      "provinceNumber": 6
+    },
+    {
+      "name": "Jumla-1",
+      "constituencyNumber": 7,
+      "province": "Karnali",
+      "provinceNumber": 6
+    },
+    {
+      "name": "Kalikot-1",
+      "constituencyNumber": 8,
+      "province": "Karnali",
+      "provinceNumber": 6
+    },
+    {
+      "name": "Dailekh-1",
+      "constituencyNumber": 9,
+      "province": "Karnali",
+      "provinceNumber": 6
+    },
+    {
+      "name": "Dailekh-2",
+      "constituencyNumber": 10,
+      "province": "Karnali",
+      "provinceNumber": 6
+    },
+    {
+      "name": "Surkhet-1",
+      "constituencyNumber": 11,
+      "province": "Karnali",
+      "provinceNumber": 6
+    },
+    {
+      "name": "Surkhet-2",
+      "constituencyNumber": 12,
+      "province": "Karnali",
+      "provinceNumber": 6
+    },
+    {
+      "name": "Bajura-1",
+      "constituencyNumber": 1,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Bajhang-1",
+      "constituencyNumber": 2,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Darchula-1",
+      "constituencyNumber": 3,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Baitadi-1",
+      "constituencyNumber": 4,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Dadeldhura-1",
+      "constituencyNumber": 5,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Doti-1",
+      "constituencyNumber": 6,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Achham-1",
+      "constituencyNumber": 7,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Achham-2",
+      "constituencyNumber": 8,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Kailali-1",
+      "constituencyNumber": 9,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Kailali-2",
+      "constituencyNumber": 10,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Kailali-3",
+      "constituencyNumber": 11,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Kailali-4",
+      "constituencyNumber": 12,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Kanchanpur-1",
+      "constituencyNumber": 13,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Kanchanpur-2",
+      "constituencyNumber": 14,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Kanchanpur-3",
+      "constituencyNumber": 15,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Doti-2",
+      "constituencyNumber": 16,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    },
+    {
+      "name": "Dadeldhura-2",
+      "constituencyNumber": 17,
+      "province": "Sudurpashchim",
+      "provinceNumber": 7
+    }
+  ]
+}

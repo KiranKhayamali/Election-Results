@@ -297,21 +297,29 @@ export const scrapeEkantipurSource = async (): Promise<AggregationResult> => {
     
     for (const constituency of constituencies) {
       try {
-        let const_record = await Constituency.findOne({
-          name: constituency.name
-        });
+        const constituencyNumber = parseInt(constituency.name.split('-')[1]);
         
-        if (!const_record) {
-          const_record = await Constituency.create({
-            name: constituency.name,
-            constituencyNumber: parseInt(constituency.name.split('-')[1]),
-            province: constituency.province,
-            provinceNumber: constituency.provinceNumber,
-            countingStatus: 'in-progress'
-          });
-        }
+        await Constituency.findOneAndUpdate(
+          {
+            constituencyNumber: constituencyNumber,
+            provinceNumber: constituency.provinceNumber
+          },
+          {
+            $set: {
+              name: constituency.name,
+              province: constituency.province,
+              countingStatus: 'in-progress'
+            },
+            $setOnInsert: {
+              totalVoters: 0,
+              totalVotesCast: 0,
+              turnoutPercentage: 0
+            }
+          },
+          { upsert: true, new: true }
+        );
       } catch (err) {
-        console.error(`Error creating constituency ${constituency.name}:`, err);
+        console.error(`Error upserting constituency ${constituency.name}:`, err);
       }
     }
     
