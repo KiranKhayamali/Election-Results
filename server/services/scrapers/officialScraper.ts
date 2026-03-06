@@ -5,7 +5,7 @@ import {
   logElectionUpdate
 } from './officialElectionDataScraper';
 
-const OFFICIAL_URL = process.env.PRIMARY_SOURCE_URL || 'https://result.election.gov.np/FPTPWLChartResult2082.aspx';
+const OFFICIAL_URL = process.env.PRIMARY_SOURCE_URL || 'https://result.election.gov.np/MapElectionResult2082.aspx';
 
 export const scrapeOfficialSource = async (): Promise<AggregationResult> => {
   try {

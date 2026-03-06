@@ -5,7 +5,9 @@ import {
   getProvinceResults,
   triggerManualUpdate,
   getLeadingCandidates,
-  getAllProvincesResults
+  getAllProvincesResults,
+  getLatestOfficialProvinceResults,
+  getLatestEkantipurProvinceResults
 } from '../controllers/electionController';
 
 const router = express.Router();
@@ -24,6 +26,12 @@ router.get('/updates', getRecentUpdates);
 
 // GET /api/elections/province/:provinceNumber - Get province-specific results
 router.get('/province/:provinceNumber', getProvinceResults);
+
+// GET /api/elections/provinces/official - Get latest official province scrape snapshot
+router.get('/provinces/official', getLatestOfficialProvinceResults);
+
+// GET /api/elections/provinces/ekantipur - Get latest Ekantipur province scrape snapshot
+router.get('/provinces/ekantipur', getLatestEkantipurProvinceResults);
 
 // POST /api/elections/refresh - Manually trigger data refresh
 router.post('/refresh', triggerManualUpdate);

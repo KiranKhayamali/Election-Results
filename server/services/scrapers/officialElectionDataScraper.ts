@@ -152,6 +152,7 @@ export async function scrapeOfficialElectionData(): Promise<OfficialElectionStat
     console.log('🔄 Fetching official election data from result.election.gov.np...');
 
     const candidateUrls = [
+      'https://result.election.gov.np/MapElectionResult2082.aspx',
       'https://result.election.gov.np/',
       'https://result.election.gov.np/FPTPWLChartResult2082.aspx'
     ];
@@ -346,7 +347,7 @@ export async function logElectionUpdate(
   try {
     await ElectionUpdate.create({
       source: 'official',
-      sourceUrl: 'https://result.election.gov.np/FPTPWLChartResult2082.aspx',
+      sourceUrl: 'https://result.election.gov.np/MapElectionResult2082.aspx',
       updateType: 'general',
       title,
       description,

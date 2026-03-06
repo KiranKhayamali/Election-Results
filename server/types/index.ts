@@ -20,6 +20,7 @@ export interface IConstituency extends Document {
   constituencyNumber: number;
   province: string;
   provinceNumber: number;
+  district?: string;
   totalVoters: number;
   totalVotesCast: number;
   turnoutPercentage: number;
@@ -47,7 +48,7 @@ export interface ICandidate extends Document {
 export interface IElectionUpdate extends Document {
   source: 'official' | 'ekantipur' | 'onlinekhabar' | 'other';
   sourceUrl?: string;
-  updateType: 'party-standings' | 'constituency-result' | 'candidate-update' | 'general';
+  updateType: 'party-standings' | 'constituency-result' | 'candidate-update' | 'candidate-scrape' | 'general';
   title: string;
   description?: string;
   data?: any;

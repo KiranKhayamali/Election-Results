@@ -162,6 +162,68 @@ export const triggerManualUpdate = async (req: Request, res: Response): Promise<
   }
 };
 
+export const getLatestOfficialProvinceResults = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const latestProvinceUpdate = await ElectionUpdate.findOne({
+      source: 'official',
+      title: 'Official Province Results Sync',
+      'data.provinces.0': { $exists: true }
+    }).sort({ timestamp: -1 });
+
+    if (!latestProvinceUpdate) {
+      res.status(404).json({
+        error: 'No official province results found',
+        message: 'Run `npm run scrape:official:provinces` to populate province results.'
+      });
+      return;
+    }
+
+    res.json({
+      source: latestProvinceUpdate.source,
+      sourceUrl: latestProvinceUpdate.sourceUrl,
+      timestamp: latestProvinceUpdate.timestamp,
+      provinces: latestProvinceUpdate.data?.provinces || [],
+      fetchedConstituencyFiles: latestProvinceUpdate.data?.fetchedConstituencyFiles || 0,
+      skippedConstituencyFiles: latestProvinceUpdate.data?.skippedConstituencyFiles || 0
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to fetch official province results',
+      message: (error as Error).message
+    });
+  }
+};
+
+export const getLatestEkantipurProvinceResults = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const latestProvinceUpdate = await ElectionUpdate.findOne({
+      source: 'ekantipur',
+      title: 'Ekantipur Province Results Sync',
+      'data.provinces.0': { $exists: true }
+    }).sort({ timestamp: -1 });
+
+    if (!latestProvinceUpdate) {
+      res.status(404).json({
+        error: 'No Ekantipur province results found',
+        message: 'Run `npm run scrape:ekantipur:provinces` to populate province results.'
+      });
+      return;
+    }
+
+    res.json({
+      source: latestProvinceUpdate.source,
+      sourceUrl: latestProvinceUpdate.sourceUrl,
+      timestamp: latestProvinceUpdate.timestamp,
+      provinces: latestProvinceUpdate.data?.provinces || []
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to fetch Ekantipur province results',
+      message: (error as Error).message
+    });
+  }
+};
+
 export const getLeadingCandidates = async (_req: Request, res: Response): Promise<void> => {
   try {
     // Get all candidates grouped by constituency
@@ -230,29 +292,41 @@ export const getAllProvincesResults = async (_req: Request, res: Response): Prom
         .populate('party')
         .sort({ votesReceived: -1 });
 
-      // Calculate leading candidates per constituency
-      const leadingByConstituency: any[] = [];
+      // Calculate leading candidates per constituency with full details
+      const constituenciesWithDetails: any[] = [];
       for (const constituency of constituencies) {
         const candidsInConstit = allCandidates.filter(
           c => (typeof c.constituency === 'object' ? c.constituency._id : c.constituency).toString() === constituency._id.toString()
         );
         
+        const constituencyData: any = {
+          constituencyNumber: constituency.constituencyNumber,
+          constituencyName: constituency.name,
+          totalVoters: constituency.totalVoters,
+          votesCast: constituency.totalVotesCast,
+          countingStatus: constituency.countingStatus
+        };
+
         if (candidsInConstit.length > 0) {
           const leader = candidsInConstit[0];
           const second = candidsInConstit[1];
           
-          leadingByConstituency.push({
-            constituency: constituency.name,
-            constituencyNumber: constituency.constituencyNumber,
-            leadingCandidate: leader.name,
-            leadingParty: typeof leader.party === 'object' && leader.party && 'name' in leader.party ? leader.party.name : 'Unknown',
-            leadingVotes: leader.votesReceived,
-            secondPlaceCandidate: second ? second.name : 'N/A',
-            secondPlaceVotes: second ? second.votesReceived : 0,
+          constituencyData.leadingCandidate = {
+            candidateName: leader.name,
+            partyName: typeof leader.party === 'object' && leader.party && 'name' in leader.party ? leader.party.name : 'Unknown',
+            partyColor: typeof leader.party === 'object' && leader.party && 'color' in leader.party ? leader.party.color : '#667eea',
+            votes: leader.votesReceived,
+            votesPercentage: constituency.totalVotesCast > 0 
+              ? Number(((leader.votesReceived / constituency.totalVotesCast) * 100).toFixed(2))
+              : 0,
             voteDifference: second ? leader.votesReceived - second.votesReceived : leader.votesReceived,
-            countingStatus: constituency.countingStatus
-          });
+            secondPlaceName: second ? second.name : 'N/A',
+            secondPlaceVotes: second ? second.votesReceived : 0,
+            constituentName: constituency.name
+          };
         }
+        
+        constituenciesWithDetails.push(constituencyData);
       }
 
       // Province summary stats
@@ -269,7 +343,7 @@ export const getAllProvincesResults = async (_req: Request, res: Response): Prom
         completedCount: completed,
         inProgressCount: inProgress,
         notStartedCount: constituencies.length - completed - inProgress,
-        constituencies: leadingByConstituency,
+        constituencies: constituenciesWithDetails,
         topCandidates: topCandidates,
         allCandidatesCount: allCandidates.length
       });

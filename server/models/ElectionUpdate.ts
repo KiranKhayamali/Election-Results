@@ -10,7 +10,7 @@ const ElectionUpdateSchema = new Schema<IElectionUpdate>({
   sourceUrl: { type: String, trim: true },
   updateType: { 
     type: String, 
-    enum: ['party-standings', 'constituency-result', 'candidate-update', 'general'],
+    enum: ['party-standings', 'constituency-result', 'candidate-update', 'candidate-scrape', 'general'],
     required: true 
   },
   title: { type: String, required: true, trim: true },

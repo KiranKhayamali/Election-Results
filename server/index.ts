@@ -16,7 +16,6 @@ import candidateRoutes from './routes/candidateRoutes';
 
 // Import services
 import { startDataAggregation } from './services/aggregationService';
-import { startAutoSyncJob } from './services/autoSyncService';
 
 // Load environment variables
 dotenv.config();
@@ -49,7 +48,8 @@ mongoose.connect(MONGODB_URI)
     // Start data aggregation after DB connection
     startDataAggregation(io);
     // Start automatic official election data sync (every 1 minute)
-    startAutoSyncJob(io, 1);
+      // Disabled for now to prevent startup crashes during network issues
+      // startAutoSyncJob(io, 1);
   })
   .catch((error) => {
     console.error('MongoDB connection error:', error);
