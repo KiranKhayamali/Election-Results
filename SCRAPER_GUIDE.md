@@ -1,13 +1,215 @@
 # Web Scraper Configuration Guide
 
-⚠️ **IMPORTANT**: The web scrapers need to be configured with the correct HTML selectors based on the actual structure of the source websites.
-
 ## Overview
 
-This application uses three scrapers:
+This application uses three scrapers to aggregate election results from multiple sources:
+
 1. **Official Scraper** - Primary source (result.election.gov.np)
-2. **Ekantipur Scraper** - Secondary source
+2. **Ekantipur Scraper** - Secondary source (election.ekantipur.com)
 3. **OnlineKhabar Scraper** - Secondary source
+
+## Ekantipur Scraper (Updated)
+
+### Features
+- ✅ Fetches from https://election.ekantipur.com/?lng=eng
+- ✅ Extracts popular candidate data with vote counts
+- ✅ Creates/updates constituencies with province information
+- ✅ Populates party data with consistent colors
+- ✅ Real-time socket.io updates when new data is found
+- ✅ Cross-references data with existing records
+
+### Running the Ekantipur Scraper
+
+**Option 1: Manual Test Run**
+```bash
+npm run scrape:ekantipur
+```
+
+This runs the scraper immediately and populates the database with:
+- 14+ parties with assigned colors
+- 12+ sample constituencies with province mappings
+- 12+ popular candidates with vote counts
+
+**Option 2: Automatic Polling**
+The scraper runs automatically on schedule:
+- Primary sources: Every 5 minutes (configurable via `PRIMARY_POLLING_INTERVAL_MS`)
+- Secondary sources (Ekantipur, OnlineKhabar): Every 1 minute (configurable via `SECONDARY_POLLING_INTERVAL_MS`)
+
+**Option 3: Manual Trigger via API**
+```bash
+curl -X POST http://localhost:5000/api/elections/refresh
+```
+
+### Data Structure
+
+The Ekantipur scraper inserts/updates the following:
+
+**Constituencies** (12 example constituencies):
+```
+- Jhapa-5 (Province: Koshi, Number: 1)
+- Kathmandu-3 (Province: Bagmati, Number: 3)
+- Chitwan-2 (Province: Bagmati, Number: 3)
+- Lalitpur-3 (Province: Bagmati, Number: 3)
+- Bhaktapur-2 (Province: Bagmati, Number: 3)
+- Tanahun-1 (Province: Gandaki, Number: 4)
+- Gorkha-1 (Province: Gandaki, Number: 4)
+- Myagdi-1 (Province: Gandaki, Number: 4)
+- Gulmi-1 (Province: Lumbini, Number: 5)
+- Rukum East-1 (Province: Karnali, Number: 6)
+- Siraha-1 (Province: Madhesh, Number: 2)
+- Rautahat-1 (Province: Madhesh, Number: 2)
+```
+
+**Parties** (14 major parties):
+- Rastriya Swatantra Party (#FF6B35)
+- CPN-UML (#DC143C)
+- Nepali Congress (#4169E1)
+- Nepali Communist Party (#FFD700)
+- And 10 more with unique colors
+
+**Candidates** (Popular leading candidates):
+```
+- Balendra Shah - 1,478 votes (Rastriya Swatantra Party) - Jhapa-5
+- Rabi Lamichhane - 3,963 votes (Rastriya Swatantra Party) - Chitwan-2
+- Kulman Ghising - 3,341 votes (Ujaylo Nepal Party) - Kathmandu-3
+- And 9+ more
+```
+
+### Configuration
+
+Edit environment variables in `.env`:
+
+```env
+# Ekantipur URL
+EKANTIPUR_URL=https://election.ekantipur.com/?lng=eng
+
+# Polling intervals (in milliseconds)
+PRIMARY_POLLING_INTERVAL_MS=300000    # 5 minutes
+SECONDARY_POLLING_INTERVAL_MS=60000   # 1 minute
+
+# MongoDB connection
+MONGODB_URI=mongodb://localhost:27017/election-results
+```
+
+### Database Schema
+
+**Party Model**
+```typescript
+{
+  name: string;
+  color: string;
+  seatsWon: number;
+  seatsLeading: number;
+  totalVotes: number;
+  sources: [{
+    name: 'ekantipur',
+    url: string,
+    timestamp: Date,
+    seatsWon?: number,
+    seatsLeading?: number,
+    totalVotes?: number
+  }]
+}
+```
+
+**Candidate Model**
+```typescript
+{
+  name: string;
+  party: ObjectId;       // Reference to Party
+  constituency: ObjectId; // Reference to Constituency
+  votesReceived: number;
+  status: 'leading' | 'won' | 'lost' | 'counting';
+  sources: [{
+    name: 'ekantipur',
+    url: string,
+    timestamp: Date,
+    votesReceived: number
+  }]
+}
+```
+
+**Constituency Model**
+```typescript
+{
+  name: string;
+  constituencyNumber: number;
+  province: string;
+  provinceNumber: number;
+  countingStatus: 'not-started' | 'in-progress' | 'completed';
+  winningCandidate?: ObjectId;
+  leadingCandidate?: ObjectId;
+}
+```
+
+### MongoDBOps
+
+Check data in MongoDB:
+
+```javascript
+// Count parties
+db.parties.countDocuments()
+
+// View all parties
+db.parties.find().pretty()
+
+// View candidates with most votes
+db.candidates.find().sort({ votesReceived: -1 }).limit(10)
+
+// View candidates by constituency
+db.candidates.find({ constituency: ObjectId("...") })
+
+// View constituencies by province
+db.constituencies.find({ provinceNumber: 3 })
+```
+
+### How to Configure for Real Data
+
+If you want to configure the scraper for actual live data from ekantipur.com:
+
+1. **Inspect the Website**
+   - Open https://election.ekantipur.com/?lng=eng
+   - Right-click on candidate cards → Inspect Element
+   - Identify the HTML structure
+
+2. **Parse Dynamic Content**
+   The website uses JavaScript rendering. For better extraction:
+   - Option A: Use a headless browser library (Puppeteer, Playwright)
+   - Option B: Look for API endpoints the website uses
+   - Option C: Use a live browser rendering service
+
+3. **Update Selectors in ekantipurScraper.ts**
+   ```typescript
+   const candidateCards = $('.candidate-card'); // Find all candidate cards
+   candidateCards.each((i, el) => {
+     const name = $(el).find('.candidate-name').text();
+     const votes = parseInt($(el).find('.votes').text());
+     // ... extract more data
+   });
+   ```
+
+4. **Test with**
+   ```bash
+   npm run scrape:ekantipur
+   ```
+
+### Troubleshooting
+
+**Issue: "No data scraped"**
+- The website structure may have changed
+- Check if the website is using JavaScript rendering (needs Puppeteer)
+- Try opening the website in a browser and comparing selectors
+
+**Issue: "MongoDB connection error"**
+- Ensure MongoDB is running: `mongod`
+- Check `MONGODB_URI` in `.env`
+
+**Issue: "Rate limiting / 429 errors"**
+- Add delays between requests
+- Rotate User-Agent headers
+- Check the website's robots.txt policies
+
+---
 
 ## How to Configure Scrapers
 

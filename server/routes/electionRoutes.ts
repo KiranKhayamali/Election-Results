@@ -3,13 +3,21 @@ import {
   getOverallResults,
   getRecentUpdates,
   getProvinceResults,
-  triggerManualUpdate
+  triggerManualUpdate,
+  getLeadingCandidates,
+  getAllProvincesResults
 } from '../controllers/electionController';
 
 const router = express.Router();
 
 // GET /api/elections/overview - Get overall election statistics
 router.get('/overview', getOverallResults);
+
+// GET /api/elections/all-provinces - Get comprehensive data for all 7 provinces
+router.get('/all-provinces', getAllProvincesResults);
+
+// GET /api/elections/leading-candidates - Get top leading candidates with vote differences
+router.get('/leading-candidates', getLeadingCandidates);
 
 // GET /api/elections/updates - Get recent election updates
 router.get('/updates', getRecentUpdates);

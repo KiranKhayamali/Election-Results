@@ -212,7 +212,8 @@
     "build:server": "tsc",
     "client": "npm start --prefix client",
     "install-all": "npm install && cd client && npm install",
-    "build": "npm run build:server && cd client && npm run build"
+    "build": "npm run build:server && cd client && npm run build",
+    "scrape:ekantipur": "ts-node server/scripts/testScraper.ts"
   },
   "keywords": [],
   "author": "",

@@ -108,3 +108,140 @@ export const triggerManualUpdate = async (req: Request, res: Response): Promise<
     res.status(500).json({ error: 'Failed to trigger update', message: (error as Error).message });
   }
 };
+
+export const getLeadingCandidates = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    // Get all candidates grouped by constituency
+    const constituencies = await Constituency.find().select('_id name constituencyNumber');
+    
+    const leadingCandidatesData: any[] = [];
+
+    for (const constituency of constituencies) {
+      // Get top 2 candidates in this constituency
+      const topCandidates = await Candidate.find({ constituency: constituency._id })
+        .populate('party')
+        .sort({ votesReceived: -1 })
+        .limit(2);
+
+      if (topCandidates.length > 0) {
+        const leading = topCandidates[0];
+        const second = topCandidates[1];
+        
+        const voteDifference = second ? leading.votesReceived - second.votesReceived : leading.votesReceived;
+
+        leadingCandidatesData.push({
+          _id: leading._id,
+          name: leading.name,
+          party: leading.party,
+          constituency: {
+            _id: constituency._id,
+            name: constituency.name,
+            constituencyNumber: constituency.constituencyNumber
+          },
+          votesReceived: leading.votesReceived,
+          votePercentage: leading.votePercentage,
+          voteDifference, // Votes leading by
+          secondPlaceVotes: second ? second.votesReceived : 0,
+          secondPlaceName: second ? second.name : 'N/A',
+          status: 'leading' as const
+        });
+      }
+    }
+
+    // Sort by votes leading with (largest leads first)
+    leadingCandidatesData.sort((a, b) => b.voteDifference - a.voteDifference);
+
+    res.json({
+      candidates: leadingCandidatesData.slice(0, 12), // Top 12 leading candidates
+      total: leadingCandidatesData.length
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch leading candidates', message: (error as Error).message });
+  }
+};
+
+export const getAllProvincesResults = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const provincesData = [];
+
+    for (let provinceNum = 1; provinceNum <= 7; provinceNum++) {
+      const constituencies = await Constituency.find({ provinceNumber: provinceNum })
+        .populate('winningCandidate')
+        .populate('leadingCandidate')
+        .sort({ constituencyNumber: 1 });
+
+      const constituencyIds = constituencies.map(c => c._id);
+      
+      // Get all candidates for this province
+      const allCandidates = await Candidate.find({ constituency: { $in: constituencyIds } })
+        .populate('party')
+        .sort({ votesReceived: -1 });
+
+      // Calculate leading candidates per constituency
+      const leadingByConstituency: any[] = [];
+      for (const constituency of constituencies) {
+        const candidsInConstit = allCandidates.filter(
+          c => (typeof c.constituency === 'object' ? c.constituency._id : c.constituency).toString() === constituency._id.toString()
+        );
+        
+        if (candidsInConstit.length > 0) {
+          const leader = candidsInConstit[0];
+          const second = candidsInConstit[1];
+          
+          leadingByConstituency.push({
+            constituency: constituency.name,
+            constituencyNumber: constituency.constituencyNumber,
+            leadingCandidate: leader.name,
+            leadingParty: typeof leader.party === 'object' ? leader.party.name : 'Unknown',
+            leadingVotes: leader.votesReceived,
+            secondPlaceCandidate: second ? second.name : 'N/A',
+            secondPlaceVotes: second ? second.votesReceived : 0,
+            voteDifference: second ? leader.votesReceived - second.votesReceived : leader.votesReceived,
+            countingStatus: constituency.countingStatus
+          });
+        }
+      }
+
+      // Province summary stats
+      const completed = constituencies.filter(c => c.countingStatus === 'completed').length;
+      const inProgress = constituencies.filter(c => c.countingStatus === 'in-progress').length;
+      
+      // Get top candidates in this province
+      const topCandidates = allCandidates.slice(0, 8);
+
+      provincesData.push({
+        provinceNumber: provinceNum,
+        provinceName: getProvinceName(provinceNum),
+        totalConstituencies: constituencies.length,
+        completedCount: completed,
+        inProgressCount: inProgress,
+        notStartedCount: constituencies.length - completed - inProgress,
+        constituencies: leadingByConstituency,
+        topCandidates: topCandidates,
+        allCandidatesCount: allCandidates.length
+      });
+    }
+
+    res.json({
+      provinces: provincesData,
+      totalProvinces: 7,
+      lastUpdated: new Date()
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch all provinces results', message: (error as Error).message });
+  }
+};
+
+// Helper function to get province name
+function getProvinceName(provinceNumber: number): string {
+  const provinces: { [key: number]: string } = {
+    1: 'Koshi',
+    2: 'Madhesh',
+    3: 'Bagmati',
+    4: 'Gandaki',
+    5: 'Lumbini',
+    6: 'Karnali',
+    7: 'Sudurpashchim'
+  };
+  return provinces[provinceNumber] || `Province ${provinceNumber}`;
+}
