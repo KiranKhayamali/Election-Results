@@ -55,7 +55,7 @@ async function correctElectionData() {
           continue;
         }
 
-        const candidate = await Candidate.create({
+        await Candidate.create({
           name: candidateData.name,
           constituency: constituency._id,
           party: party._id,

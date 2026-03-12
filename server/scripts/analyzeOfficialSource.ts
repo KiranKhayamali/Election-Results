@@ -1,6 +1,5 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import MongoDB from 'mongodb';
 
 /**
  * Scraper for official.election.gov.np election results
@@ -30,7 +29,7 @@ async function scrapeOfficialResultsData() {
     let foundApiPattern = false;
     let apiPatterns: string[] = [];
 
-    scripts.each((i, elem) => {
+    scripts.each((_i, elem) => {
       const scriptContent = $(elem).html() || '';
       
       // Look for API endpoint patterns
@@ -71,11 +70,9 @@ async function scrapeOfficialResultsData() {
     const mapHtml = cheerio.load(mapResponse.data);
     const mapScripts = mapHtml('script');
     
-    let endpointFound = false;
-    mapScripts.each((i, elem) => {
+    mapScripts.each((_i, elem) => {
       const content = mapHtml(elem).html() || '';
       if (content.includes('Bhaktapur') || content.includes('constituency')) {
-        endpointFound = true;
         console.log('✅ Found data references in map page');
       }
     });
