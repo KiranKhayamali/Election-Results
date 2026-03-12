@@ -1,0 +1,119 @@
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.app-header .container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+}
+
+.app-header h1 {
+  color: white;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.main-nav {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.main-nav a {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+  font-size: 0.95rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.main-nav a::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.15);
+  transition: left 0.3s ease;
+}
+
+.main-nav a:hover::before {
+  left: 0;
+}
+
+.main-nav a:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.app-main {
+  flex: 1;
+  padding: 2rem 0;
+}
+
+.app-footer {
+  background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 2rem;
+  margin-top: 4rem;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.app-footer .container {
+  max-width: 1400px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.app-footer p {
+  margin: 0.75rem 0;
+  line-height: 1.8;
+}
+
+.app-footer a {
+  color: #667eea;
+  text-decoration: none;
+  margin: 0 0.75rem;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.app-footer a:hover {
+  color: #a0aeff;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .app-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .main-nav {
+    flex-direction: column;
+  }
+  
+  .main-nav a {
+    text-align: center;
+  }
+}
